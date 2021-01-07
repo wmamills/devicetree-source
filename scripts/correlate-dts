@@ -1,0 +1,132 @@
+#!/bin/bash
+
+# V2 will be python!
+# (I always do this.  Start in bash and regret it. Sigh.)
+
+U_BOOT=../sync-test/u-boot
+KERNEL=../sync-test/kernel
+
+do_study() {
+echo -n "" >dts-synced.txt
+echo -n "" >dts-somewhere.txt
+echo -n "" >dts-no.txt
+echo -n "" >dts-maybe.txt
+for f in $(cd $U_BOOT; find -name "*.dts*" | sort ); do
+    # u-boot puts arm and arm64 in the same dir
+    # freescale has some dtsi files of the same name in arm64 and in powerpc
+    # (the content is different)
+    # rasberry pi v3 and v4 has same name in arm64 and arm in kernel
+    #   arm64 is a short wrapper around the arm version
+    # so limit the base of searching when needed and search arm first
+    case $f in
+    ./arch/arm/*)
+        BASE="./arch/arm ./arch/arm64"
+        ;;
+    ./arch/powerpc/*)
+        BASE="./arch/powerpc"
+        ;;
+    *)
+        BASE="."
+        ;;
+    esac
+    # take the first if more than one match
+    k_f=$(cd $KERNEL; find $BASE -name "$(basename $f)" | head -n 1)
+
+    # can't use sha1sum because git adds its own header to the blob
+    SHA1=$(cd $U_BOOT; git ls-tree HEAD $f | cut -d' ' -f 3 | cut -f 1)
+    if [ -n "$k_f" ]; then
+        K_SHA1=$(cd $KERNEL; git ls-tree HEAD $k_f | cut -d' ' -f 3 | cut -f 1)
+        STATS=$(git diff --numstat $U_BOOT/$f $KERNEL/$k_f)
+    else
+        K_SHA1="0000000000000000000000000000000000000000"
+    fi
+
+    #echo "  # $f $k_f $SHA1 $K_SHA1"
+    if [ x"$SHA1" == x"$K_SHA1" ]; then
+        # golden case, same filename and same content at tip of kernel
+        echo "! $f"
+        echo "$f" >>dts-synced.txt
+    elif (cd $KERNEL; git show -p $SHA1 >/dev/null 2>&1 ); then
+        # the blob exists somewhere in the kernel
+        # might be a different name or more likely on an older commit
+        echo "+ $f"
+        printf "%-70s %s\n" "$f" "$STATS" >>dts-somewhere.txt
+    elif [ -n "$k_f" ]; then
+        # there is a file of the same name in the kernel
+        echo "~ $f"
+        printf "%-70s %s\n" "$f" "$STATS" >>dts-maybe.txt
+    else
+        # no corelation at all
+        echo "- $f"
+        echo "$f" >>dts-no.txt
+    fi
+done
+}
+
+do_study
+
+# log output from here on to summary.txt
+exec > >(tee  summary.txt)
+
+echo "Devicetree sync status for u-boot $(cd $U_BOOT; git describe)"
+echo "Compared to kernel $(cd $KERNEL; git describe)"
+
+# Filter out the u-boot specific stuff
+grep -v -E "tool|test|u-boot|uboot|sandbox" dts-no.txt >dts-rest-no.txt
+grep -E "sandbox" dts-no.txt >dts-sandbox.txt
+grep -v -E "sandbox" dts-no.txt | grep -E "u-boot|uboot" >dts-override.txt
+grep -v -E "sandbox|u-boot|uboot" dts-no.txt | grep -E "test|tool" >dts-test.txt
+
+line_count() {
+    c=$(wc -l $1 | cut -d" " -f 1)
+    echo "$c"
+}
+
+do_arch() {
+    FILE=$1
+    DESC=$2
+    SUB_TOTAL=$(line_count $FILE)
+    if [ "$PASS" == "pre-run" ]; then
+        TOTAL=$(( $TOTAL + $SUB_TOTAL ))
+        return
+    fi
+
+    printf "%2d%% (%3d) %s\n" $(( $SUB_TOTAL * 100 / $TOTAL )) $SUB_TOTAL "$DESC"
+    for a in arm riscv mips powerpc x86 68k microblaze sh arc; do
+        COUNT=$(grep -E "arch/$a" $FILE | line_count )
+        printf "\t%4d %s\n" $COUNT $a
+    done
+}
+
+TOTAL=0
+for PASS in pre-run print; do
+    do_arch dts-synced.txt      "are completely synced"
+    do_arch dts-somewhere.txt   "content has appeared in the kernel but is not up to date"
+    do_arch dts-maybe.txt       "filename appears in kernel but content never has"
+    do_arch dts-rest-no.txt     "neither filename nor content appears in kernel"
+done
+
+TOTAL=$(cat dts-sandbox.txt dts-override.txt dts-test.txt | line_count)
+printf "n/a (%3d) %s\n" $SUB_TOTAL "U-Boot specific, no correlation expected"
+for f in sandbox override test; do
+    COUNT=$(line_count dts-${f}.txt)
+    printf "\t%4d %s\n" $COUNT $f
+done
+
+# it is also possible to hide all your sins in the override file
+# first check, how big are the override files?
+MAX_BUCKET=0
+echo "" >dts-override-size.txt
+echo "histogram of override size (in raw lines)"
+for f in $(cat dts-override.txt); do
+    COUNT=$(line_count $U_BOOT/$f)
+    printf "%-70s %3d\n" "$f" $COUNT >>dts-override-size.txt
+    BUCKET=$(( $COUNT / 10 ))
+    if [ $BUCKET -gt $MAX_BUCKET ]; then
+        MAX_BUCKET=$BUCKET
+    fi
+    HIST[$BUCKET]=$(( ${HIST[$BUCKET]} + 1 ))
+done
+for i in $(seq $MAX_BUCKET); do
+    printf "%5d %3d\n" $(( $i * 10 )) ${HIST[$i]}
+done
