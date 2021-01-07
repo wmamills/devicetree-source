@@ -1,4 +1,6 @@
 .*
 !.gitignore
 *.dtb
-
+# don't check these in but keep for easy work on script
+dts-no.txt
+dts-override.txt

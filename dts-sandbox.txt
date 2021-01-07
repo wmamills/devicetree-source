@@ -1,0 +1,7 @@
+./arch/sandbox/dts/sandbox64.dts
+./arch/sandbox/dts/sandbox.dts
+./arch/sandbox/dts/sandbox.dtsi
+./arch/sandbox/dts/sandbox_pmic.dtsi
+./arch/sandbox/dts/test.dts
+./test/py/tests/vboot/sandbox-kernel.dts
+./test/py/tests/vboot/sandbox-u-boot.dts

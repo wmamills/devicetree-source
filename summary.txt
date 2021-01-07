@@ -1,0 +1,79 @@
+Devicetree sync status for u-boot v2021.01-rc5-7-gb8c725e736
+Compared to kernel v5.11-rc2-156-g71c061d24438
+14% (255) are completely synced
+	 253 arm
+	   2 riscv
+	   0 mips
+	   0 powerpc
+	   0 x86
+	   0 68k
+	   0 microblaze
+	   0 sh
+	   0 arc
+23% (416) content has appeared in the kernel but is not up to date
+	 411 arm
+	   0 riscv
+	   1 mips
+	   0 powerpc
+	   1 x86
+	   0 68k
+	   0 microblaze
+	   0 sh
+	   1 arc
+33% (584) filename appears in kernel but content never has
+	 467 arm
+	   1 riscv
+	  12 mips
+	  91 powerpc
+	   0 x86
+	   0 68k
+	   0 microblaze
+	   0 sh
+	   8 arc
+28% (510) neither filename nor content appears in kernel
+	 305 arm
+	   4 riscv
+	  48 mips
+	  35 powerpc
+	  44 x86
+	   0 68k
+	   1 microblaze
+	   1 sh
+	   6 arc
+n/a (510) U-Boot specific, no correlation expected
+	   7 sandbox
+	 358 override
+	 211 test
+histogram of override size (in raw lines)
+   10  61
+   20  53
+   30  38
+   40  33
+   50  23
+   60  14
+   70  12
+   80   7
+   90   5
+  100   4
+  110   4
+  120   5
+  130   6
+  140   4
+  150   0
+  160   2
+  170   0
+  180   0
+  190   4
+  200   0
+  210   2
+  220   2
+  230   1
+  240   2
+  250   1
+  260   1
+  270   1
+  280   0
+  290   0
+  300   0
+  310   0
+  320   1
