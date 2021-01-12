@@ -6,7 +6,7 @@ Compared to kernel v5.11-rc2-156-g71c061d24438
 	   0 mips
 	   0 powerpc
 	   0 x86
-	   0 68k
+	   0 m68k
 	   0 microblaze
 	   0 sh
 	   0 arc
@@ -16,7 +16,7 @@ Compared to kernel v5.11-rc2-156-g71c061d24438
 	   1 mips
 	   0 powerpc
 	   1 x86
-	   0 68k
+	   0 m68k
 	   0 microblaze
 	   0 sh
 	   1 arc
@@ -26,7 +26,7 @@ Compared to kernel v5.11-rc2-156-g71c061d24438
 	  12 mips
 	  91 powerpc
 	   0 x86
-	   0 68k
+	   0 m68k
 	   0 microblaze
 	   0 sh
 	   8 arc
@@ -36,7 +36,7 @@ Compared to kernel v5.11-rc2-156-g71c061d24438
 	  48 mips
 	  35 powerpc
 	  44 x86
-	   0 68k
+	  64 m68k
 	   1 microblaze
 	   1 sh
 	   6 arc

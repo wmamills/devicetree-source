@@ -92,7 +92,7 @@ do_arch() {
     fi
 
     printf "%2d%% (%3d) %s\n" $(( $SUB_TOTAL * 100 / $TOTAL )) $SUB_TOTAL "$DESC"
-    for a in arm riscv mips powerpc x86 68k microblaze sh arc; do
+    for a in arm riscv mips powerpc x86 m68k microblaze sh arc; do
         COUNT=$(grep -E "arch/$a" $FILE | line_count )
         printf "\t%4d %s\n" $COUNT $a
     done
